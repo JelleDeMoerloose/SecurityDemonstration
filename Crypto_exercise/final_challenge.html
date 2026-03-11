@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRYPTO CTF // FINAL CHALLENGE</title>
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Share Tech Mono', monospace;
+            background: #0a0e17;
+            color: #c9d1d9;
+            min-height: 100vh;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+        body::before {
+            content: "";
+            position: fixed; inset: 0;
+            background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,255,180,0.015) 2px, rgba(0,255,180,0.015) 4px);
+            pointer-events: none; z-index: 9999;
+        }
+        body::after {
+            content: "";
+            position: fixed; inset: 0;
+            background-image: linear-gradient(rgba(0,255,180,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0,255,180,0.03) 1px, transparent 1px);
+            background-size: 40px 40px;
+            pointer-events: none; z-index: 0;
+        }
+        .wrapper { max-width: 1400px; margin: 0 auto; position: relative; z-index: 1; }
+        .hero { text-align: center; padding: 40px 20px 30px; }
+        .hero h1 { font-family: 'Orbitron', sans-serif; font-size: clamp(2rem,6vw,4.5rem); font-weight: 900; color: #00ffb4; text-shadow: 0 0 30px rgba(0,255,180,0.6), 0 0 60px rgba(0,255,180,0.3); letter-spacing: 4px; }
+        .hero .tagline { color: #8b949e; font-size: 0.85rem; letter-spacing: 6px; margin: 12px 0 20px; text-transform: uppercase; }
+        .hero .mission-line { color: #c9d1d9; font-size: 1rem; margin: 6px 0; }
+        .hl-yellow { color: #f0c040; font-weight: bold; }
+        .hl-green  { color: #00ffb4; font-weight: bold; }
+        .section-title { font-family: 'Orbitron', sans-serif; color: #00ffb4; font-size: 1rem; letter-spacing: 3px; margin: 40px 0 20px; text-transform: uppercase; }
+        .section-title::before { content: "◆ "; }
+        .panel { border: 1px solid rgba(0,255,180,0.2); background: rgba(0,10,20,0.6); border-radius: 4px; padding: 20px; }
+        .panel-title { font-family: 'Orbitron', sans-serif; color: #00ffb4; font-size: 0.8rem; letter-spacing: 3px; text-align: center; padding: 10px 0 14px; border-bottom: 1px solid rgba(0,255,180,0.15); margin-bottom: 16px; }
+        .card { border: 1px solid rgba(0,255,180,0.12); background: rgba(0,255,180,0.03); border-radius: 4px; padding: 16px; margin-bottom: 16px; }
+        .card h3 { font-family: 'Orbitron', sans-serif; color: #00ffb4; font-size: 0.78rem; letter-spacing: 2px; margin-bottom: 10px; }
+        .card p, .card li { font-size: 0.83rem; line-height: 1.75; }
+        .card ul { margin-left: 18px; }
+        .card li strong { color: #00ffb4; }
+        .info-block { background: rgba(0,0,0,0.35); border-left: 3px solid #00ffb4; padding: 12px 14px; margin: 10px 0; font-size: 0.82rem; line-height: 1.7; }
+        .info-block strong { color: #f0c040; }
+        .alpha-row { background: rgba(0,0,0,0.4); border: 1px solid rgba(0,255,180,0.15); padding: 10px 12px; border-radius: 3px; font-size: 0.8rem; letter-spacing: 2px; margin: 8px 0; word-break: break-all; }
+        .alpha-row strong { color: #f0c040; display: block; margin-bottom: 4px; font-size: 0.72rem; }
+        .num-circle { font-family: 'Orbitron', sans-serif; font-size: 1rem; font-weight: 700; width: 44px; height: 44px; border-radius: 50%; border: 2px solid #f0c040; color: #f0c040; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .encrypted-msg { font-size: 1.05rem; letter-spacing: 3px; color: #00ffb4; background: rgba(0,0,0,0.4); border: 1px solid rgba(0,255,180,0.2); padding: 12px 16px; border-radius: 3px; margin: 10px 0; font-family: 'Share Tech Mono', monospace; }
+        label { display: block; font-size: 0.75rem; color: #8b949e; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 6px; }
+        input[type="text"], input[type="number"] { width: 100%; background: rgba(0,0,0,0.5); border: 1px solid rgba(0,255,180,0.25); color: #00ffb4; padding: 10px 12px; border-radius: 3px; font-family: 'Share Tech Mono', monospace; font-size: 0.9rem; margin-bottom: 10px; outline: none; transition: border-color 0.2s, opacity 0.2s; }
+        input:focus { border-color: #00ffb4; }
+        input:disabled { opacity: 0.3; cursor: not-allowed; border-color: rgba(255,255,255,0.1); color: #555; }
+        button { font-family: 'Share Tech Mono', monospace; cursor: pointer; border-radius: 3px; font-size: 0.82rem; letter-spacing: 2px; transition: all 0.2s; border: none; padding: 10px 16px; margin-bottom: 8px; text-transform: uppercase; }
+        .btn-primary { background: transparent; border: 1px solid #00ffb4; color: #00ffb4; width: 100%; padding: 12px; }
+        .btn-primary:hover { background: rgba(0,255,180,0.1); box-shadow: 0 0 14px rgba(0,255,180,0.25); }
+        .btn-sm { background: transparent; border: 1px solid rgba(0,255,180,0.3); color: #8b949e; font-size: 0.72rem; padding: 6px 12px; }
+        .btn-sm:hover { border-color: #00ffb4; color: #00ffb4; }
+        .btn-danger { background: transparent; border: 1px solid #ef4444; color: #ef4444; width: 100%; padding: 12px; letter-spacing: 2px; }
+        .btn-danger:hover { background: rgba(239,68,68,0.1); box-shadow: 0 0 14px rgba(239,68,68,0.25); }
+        .btn-timer { background: transparent; border: 1px solid #f0c040; color: #f0c040; padding: 8px 16px; }
+        .btn-timer:hover { background: rgba(240,192,64,0.1); }
+        .btn-nav { background: transparent; border: 1px solid #00ffb4; color: #00ffb4; padding: 12px 28px; font-size: 0.85rem; letter-spacing: 3px; }
+        .btn-nav:hover { background: rgba(0,255,180,0.1); box-shadow: 0 0 20px rgba(0,255,180,0.3); }
+        .result { margin-top: 10px; padding: 12px 14px; border-radius: 3px; font-size: 0.82rem; line-height: 1.7; }
+        .result-ok      { background: rgba(0,255,180,0.08); border: 1px solid rgba(0,255,180,0.35); color: #00ffb4; }
+        .result-err     { background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.35); color: #ef4444; }
+        .result-partial { background: rgba(240,192,64,0.08); border: 1px solid rgba(240,192,64,0.35); color: #f0c040; }
+        .result-code    { font-family: 'Share Tech Mono', monospace; }
+        .score-bar { text-align: center; font-family: 'Orbitron', sans-serif; font-size: 0.85rem; color: #f0c040; letter-spacing: 3px; margin-bottom: 16px; padding: 10px; border: 1px solid rgba(240,192,64,0.25); border-radius: 3px; background: rgba(240,192,64,0.04); }
+        .alpha-tool { border: 1px solid rgba(0,255,180,0.2); background: rgba(0,255,180,0.03); border-radius: 4px; padding: 24px; margin: 28px 0; }
+        .alpha-tool h2 { font-family: 'Orbitron', sans-serif; color: #00ffb4; font-size: 0.85rem; letter-spacing: 3px; margin-bottom: 14px; }
+        .alpha-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+        .timer-display { font-family: 'Orbitron', sans-serif; font-size: 2.4rem; font-weight: 700; color: #f0c040; text-align: center; text-shadow: 0 0 20px rgba(240,192,64,0.5); margin: 16px 0; letter-spacing: 4px; }
+        .timer-controls { text-align: center; margin-bottom: 20px; display: flex; justify-content: center; gap: 10px; }
+        .final-section { border: 1px solid rgba(239,68,68,0.4); background: rgba(239,68,68,0.04); border-radius: 4px; padding: 28px; margin: 28px 0; position: relative; }
+        .final-section::before { content: "// FINAL_CHALLENGE.exe"; position: absolute; top: 10px; right: 16px; font-size: 0.68rem; color: #ef4444; letter-spacing: 2px; opacity: 0.7; }
+        .final-section h2 { font-family: 'Orbitron', sans-serif; color: #ef4444; font-size: 1rem; letter-spacing: 3px; margin-bottom: 14px; }
+        .final-section h2::before { content: "◆ "; }
+        .score-formula { background: rgba(0,0,0,0.4); border: 1px solid rgba(240,192,64,0.2); border-radius: 3px; padding: 14px; font-size: 0.78rem; color: #8b949e; margin: 14px 0; line-height: 1.8; }
+        .score-formula strong { color: #f0c040; }
+        .leaderboard-section { border: 1px solid rgba(0,255,180,0.2); background: rgba(0,255,180,0.02); border-radius: 4px; padding: 28px; margin-top: 28px; }
+        .leaderboard-section h2 { font-family: 'Orbitron', sans-serif; color: #00ffb4; font-size: 0.9rem; letter-spacing: 3px; text-align: center; margin-bottom: 8px; }
+        .leaderboard-section h2::before { content: "◆ "; }
+        table { width: 100%; border-collapse: collapse; margin-top: 16px; }
+        thead th { background: rgba(0,255,180,0.08); color: #00ffb4; padding: 12px 16px; text-align: left; font-size: 0.75rem; letter-spacing: 2px; border-bottom: 1px solid rgba(0,255,180,0.2); }
+        tbody td { padding: 11px 16px; font-size: 0.82rem; border-bottom: 1px solid rgba(255,255,255,0.05); color: #c9d1d9; }
+        tbody tr:hover { background: rgba(0,255,180,0.03); }
+        .rank-gold { color: #f0c040; } .rank-silver { color: #c0c0c0; } .rank-bronze { color: #cd7f32; }
+        img.demo-img { width: 100%; border-radius: 4px; border: 1px solid rgba(0,255,180,0.15); margin: 10px 0; filter: brightness(0.9) saturate(0.8); }
+        #exportBtn { background: transparent; border: 1px solid rgba(0,255,180,0.4); color: #00ffb4; padding: 8px 18px; font-size: 0.75rem; letter-spacing: 2px; margin-top: 14px; display: block; margin-left: auto; }
+        #exportBtn:hover { background: rgba(0,255,180,0.08); }
+        .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px; }
+        @media (max-width: 800px) { .two-col { grid-template-columns: 1fr; } .alpha-grid { grid-template-columns: 1fr; } }
+
+        /* ── TOOLS PANEL ── */
+        .tools-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 28px 0;
+        }
+        @media (max-width: 900px) { .tools-grid { grid-template-columns: 1fr; } }
+
+        .tool-panel {
+            border: 1px solid rgba(0,255,180,0.25);
+            background: rgba(0,10,20,0.7);
+            border-radius: 6px;
+            padding: 22px;
+        }
+        .tool-panel h3 {
+            font-family: 'Orbitron', sans-serif;
+            color: #00ffb4;
+            font-size: 0.8rem;
+            letter-spacing: 3px;
+            margin-bottom: 6px;
+        }
+        .tool-panel .tool-sub {
+            font-size: 0.75rem;
+            color: #8b949e;
+            margin-bottom: 16px;
+            line-height: 1.6;
+        }
+
+        /* Alphabet explorer */
+        .alpha-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 0.78rem;
+            margin: 14px 0;
+        }
+        .alpha-table th {
+            background: rgba(0,255,180,0.08);
+            color: #f0c040;
+            padding: 8px 4px;
+            text-align: center;
+            font-size: 0.65rem;
+            letter-spacing: 1px;
+            border: 1px solid rgba(0,255,180,0.1);
+        }
+        .alpha-table td {
+            text-align: center;
+            padding: 8px 4px;
+            border: 1px solid rgba(0,255,180,0.08);
+            color: #c9d1d9;
+            transition: background 0.15s;
+            cursor: default;
+        }
+        .alpha-table td.plain  { color: #00ffb4; background: rgba(0,255,180,0.06); }
+        .alpha-table td.cipher { color: #f0c040; background: rgba(240,192,64,0.06); }
+        .alpha-table td.highlighted {
+            background: rgba(239,68,68,0.3) !important;
+            color: #fff !important;
+            border-color: #ef4444 !important;
+            font-weight: bold;
+        }
+        .alpha-shift-control {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+        }
+        .alpha-shift-control label { margin: 0; font-size: 0.72rem; white-space: nowrap; }
+        .alpha-shift-control input { width: 70px; margin: 0; padding: 7px 10px; font-size: 0.85rem; }
+        .shift-arrows { display: flex; gap: 6px; }
+        .shift-arrows button { padding: 6px 14px; font-size: 1rem; margin: 0; line-height: 1; }
+
+        /* Lookup box */
+        .lookup-box {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .lookup-box input { width: 60px; margin: 0; text-align: center; font-size: 1.1rem; text-transform: uppercase; padding: 8px; }
+        .lookup-result {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1rem;
+            padding: 8px 16px;
+            border: 1px solid rgba(0,255,180,0.3);
+            border-radius: 3px;
+            color: #00ffb4;
+            background: rgba(0,255,180,0.06);
+            min-width: 80px;
+            text-align: center;
+        }
+
+        /* Frequency analysis */
+        .freq-input {
+            width: 100%;
+            background: rgba(0,0,0,0.5);
+            border: 1px solid rgba(0,255,180,0.25);
+            color: #00ffb4;
+            padding: 10px 12px;
+            border-radius: 3px;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 0.95rem;
+            margin-bottom: 10px;
+            outline: none;
+        }
+        .freq-bars {
+            display: flex;
+            align-items: flex-end;
+            gap: 3px;
+            height: 100px;
+            margin: 12px 0 4px;
+            border-bottom: 1px solid rgba(0,255,180,0.2);
+            padding-bottom: 2px;
+        }
+        .freq-bar-wrap {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1;
+        }
+        .freq-bar {
+            width: 100%;
+            background: #00ffb4;
+            border-radius: 2px 2px 0 0;
+            transition: height 0.3s;
+            min-height: 0;
+            position: relative;
+        }
+        .freq-bar.highlight { background: #ef4444; }
+        .freq-bar-count {
+            font-size: 0.55rem;
+            color: #8b949e;
+            text-align: center;
+            margin-bottom: 2px;
+        }
+        .freq-bar-label {
+            font-size: 0.65rem;
+            color: #f0c040;
+            text-align: center;
+            margin-top: 3px;
+        }
+        .freq-hint {
+            font-size: 0.73rem;
+            color: #8b949e;
+            line-height: 1.7;
+            margin-top: 8px;
+            border-left: 2px solid #f0c040;
+            padding-left: 10px;
+        }
+        .freq-hint strong { color: #f0c040; }
+        .freq-stats {
+            font-size: 0.75rem;
+            color: #c9d1d9;
+            margin-top: 8px;
+            line-height: 1.8;
+        }
+        .freq-stats span { color: #00ffb4; }
+
+</style>
+</head>
+<body>
+<div class="wrapper">
+
+    <div class="hero">
+        <h1>FINAL CHALLENGE</h1>
+        <p class="tagline">// LEADERBOARD COMPETITION //</p>
+        <p class="mission-line">Decrypt the message as <span class="hl-yellow">fast and accurately</span> as you can.</p>
+        <p class="mission-line">Start the timer first — the answer field unlocks when you do.</p>
+    </div>
+
+    <div class="final-section">
+        <h2>Decrypt the Secret Message</h2>
+        <p style="font-size:0.88rem;margin-bottom:18px;color:#c9d1d9;">Everyone enters the leaderboard. Higher accuracy + faster time = better score. The winner at the end of the session will be notified by email.</p>
+
+        <div style="border:1px solid rgba(239,68,68,0.3);background:rgba(0,0,0,0.4);padding:16px 20px;border-radius:3px;margin-bottom:18px;">
+            <div style="font-size:0.72rem;color:#ef4444;letter-spacing:2px;margin-bottom:8px;">// ENCRYPTED MESSAGE</div>
+            <div class="encrypted-msg" style="font-size:1.3rem;border:none;padding:0;background:none;">LQGXVWULDO VHFXULWB PDWWHUV</div>
+        </div>
+
+        <div class="score-formula">
+            <strong>// SCORING FORMULA</strong><br>
+            Score = accuracy% + speed_bonus<br>
+            speed_bonus = max(0, 200 − seconds_taken)<br>
+            0 matching letters → 0 pts &nbsp;|&nbsp; Full correct → 100 + speed bonus
+        </div>
+
+        <div class="timer-display" id="finalTimer">00:00</div>
+        <div class="timer-controls">
+            <button class="btn-timer" id="timerToggleBtn" onclick="startStopTimer()">[ ▶ START TIMER ]</button>
+            <button class="btn-timer" onclick="resetTimerBtn()">[ ⟲ RESET ]</button>
+        </div>
+
+        <p style="font-size:0.75rem;color:#ef4444;letter-spacing:2px;margin-bottom:10px;" id="lockedMsg">// ANSWER LOCKED — start the timer first</p>
+
+        <label for="finalAnswer">Decrypted answer</label>
+        <input type="text" id="finalAnswer" placeholder="Start the timer to unlock..." disabled>
+
+        <label for="studentName">Your name</label>
+        <input type="text" id="studentName" placeholder="Name for the leaderboard...">
+
+        <label for="studentEmail">Your email (winner notification)</label>
+        <input type="text" id="studentEmail" placeholder="email@example.com">
+
+        <button class="btn-danger" onclick="submitFinalChallenge()">[ 🚀 SUBMIT FINAL ANSWER ]</button>
+        <div id="finalResult"></div>
+    </div>
+
+    <!-- TOOLS SECTION -->
+    <div class="section-title" style="margin-top:10px;">Decryption Tools</div>
+    <p style="font-size:0.82rem;color:#8b949e;margin-bottom:20px;line-height:1.7;">
+        Two tools to help you crack the cipher. The <strong style="color:#00ffb4">Alphabet Explorer</strong> lets you try any shift and look up individual letters.
+        The <strong style="color:#f0c040">Frequency Analyser</strong> counts how often each letter appears — in English, <strong style="color:#f0c040">E</strong> is the most common letter (~13%), so the most frequent letter in the ciphertext is probably E encrypted. This tells you the shift without guessing!
+    </p>
+
+    <div class="tools-grid">
+
+        <!-- TOOL 1: ALPHABET EXPLORER -->
+        <div class="tool-panel">
+            <h3>🔤 Alphabet Shift Explorer</h3>
+            <p class="tool-sub">
+                To <strong style="color:#ef4444">decrypt</strong>: find your encrypted letter in the <strong style="color:#f0c040">CIPHER</strong> row → the letter above it in <strong style="color:#00ffb4">PLAIN</strong> is the answer.<br>
+                To <strong style="color:#00ffb4">encrypt</strong>: find your letter in <strong style="color:#00ffb4">PLAIN</strong> → read below in <strong style="color:#f0c040">CIPHER</strong>.<br>
+                Click any letter to highlight its pair.
+            </p>
+
+            <div class="alpha-shift-control">
+                <label for="alphaShift">Shift:</label>
+                <div class="shift-arrows">
+                    <button class="btn-sm" onclick="changeShift(-1)">−</button>
+                    <input type="number" id="alphaShift" min="1" max="25" value="3" oninput="updateAlphabetShift()">
+                    <button class="btn-sm" onclick="changeShift(1)">+</button>
+                </div>
+                <span id="shiftLabel" style="color:#f0c040;font-size:0.8rem;letter-spacing:2px;">SHIFT: 3</span>
+            </div>
+
+            <table class="alpha-table" id="alphaTable">
+                <thead>
+                    <tr id="alphaHeaderRow"></tr>
+                </thead>
+                <tbody>
+                    <tr id="alphaPlainRow"></tr>
+                    <tr id="alphaCipherRow"></tr>
+                </tbody>
+            </table>
+
+            <div class="lookup-box">
+                <label style="white-space:nowrap;">Quick lookup:</label>
+                <input type="text" id="lookupInput" maxlength="1" placeholder="?" oninput="lookupLetter()" style="text-transform:uppercase;">
+                <span style="color:#8b949e;font-size:0.8rem;">→</span>
+                <div class="lookup-result" id="lookupResult">?</div>
+                <span style="color:#8b949e;font-size:0.72rem;" id="lookupDir"></span>
+            </div>
+        </div>
+
+        <!-- TOOL 2: FREQUENCY ANALYSER -->
+        <div class="tool-panel">
+            <h3>📊 Frequency Analyser</h3>
+            <p class="tool-sub">
+                Paste the encrypted text below. The tool counts each letter's frequency. In English, <strong style="color:#f0c040">E</strong> appears most (~13%). The tallest bar is likely <strong style="color:#f0c040">E</strong> encrypted — its position tells you the shift!
+            </p>
+
+            <input class="freq-input" type="text" id="freqInput" placeholder="Paste encrypted text here..." oninput="analyseFrequency()" value="LQGXVWULDO VHFXULWB PDWWHUV">
+
+            <div class="freq-bars" id="freqBars"></div>
+            <div style="display:flex;justify-content:space-between;font-size:0.6rem;color:#8b949e;letter-spacing:1px;margin-bottom:8px;">
+                <span>A</span><span style="margin-left:auto;">Z</span>
+            </div>
+
+            <div class="freq-stats" id="freqStats"></div>
+
+            <div class="freq-hint">
+                <strong>How to use this to find the shift:</strong><br>
+                1. Find the tallest bar — that letter is the most frequent in the cipher.<br>
+                2. In English, the most common letter is <strong>E</strong>.<br>
+                3. Count the positions from <strong>E</strong> to your tallest bar = the shift.<br>
+                Example: tallest bar is <strong>H</strong> → H is 3 steps after E → shift is <strong>3</strong>.
+            </div>
+        </div>
+    </div>
+
+    <!-- LEADERBOARD -->
+    <div class="leaderboard-section">
+        <h2>Today's Leaderboard</h2>
+        <p style="text-align:center;font-size:0.78rem;color:#8b949e;letter-spacing:2px;">FASTEST + MOST ACCURATE STUDENTS</p>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;margin-top:14px;">
+            <button id="exportBtn" onclick="exportCSV()" style="margin:0;">[ ⬇ EXPORT SESSION CSV ]</button>
+            <button onclick="clearSession()" style="background:transparent;border:1px solid rgba(239,68,68,0.4);color:#ef4444;padding:8px 18px;font-size:0.75rem;letter-spacing:2px;margin:0;">[ 🗑 CLEAR SESSION DATA ]</button>
+        </div>
+        <table>
+            <thead>
+                <tr><th>RANK</th><th>NAME</th><th>SOLVE TIME</th><th>SUBMITTED AT</th><th>SCORE</th></tr>
+            </thead>
+            <tbody id="leaderboardBody">
+                <tr><td class="rank-gold">🥇 1</td><td>Be the first!</td><td>--:--</td><td>--:--:--</td><td>-</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div style="text-align:center;margin:30px 0;">
+        <a href="crypto_ctf.html"><button class="btn-nav">[ ← BACK TO EXERCISES ]</button></a>
+    </div>
+
+</div>
+<script>
+
+    const alpha = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    function caesarCipher(text, shift, encrypt=true) {
+        text = text.toUpperCase();
+        if (!encrypt) shift = (26 - shift) % 26;
+        return text.split('').map(c => {
+            if (c >= 'A' && c <= 'Z') return String.fromCharCode(((c.charCodeAt(0)-65+shift)%26)+65);
+            return c;
+        }).join('');
+    }
+    function msg(type, html) {
+        const cls = type==='ok' ? 'result-ok' : type==='partial' ? 'result-partial' : 'result-err';
+        return `<div class="result ${cls} result-code">${html}</div>`;
+    }
+    function updateAlphabetShift() {
+        let s = ((parseInt(document.getElementById('alphaShift').value)||0)%26+26)%26;
+        document.getElementById('alphaOriginal').textContent = alpha;
+        document.getElementById('alphaShifted').textContent  = alpha.slice(s)+alpha.slice(0,s);
+    }
+    function toggleHint(n) {
+        const wrapper = document.getElementById('alphaToolWrapper');
+        const isVisible = wrapper.style.display === 'block';
+        wrapper.style.display = isVisible ? 'none' : 'block';
+        if (!isVisible) {
+            const shiftMap = {1:3, 2:3};
+            document.getElementById('alphaShift').value = shiftMap[n] || 3;
+            updateAlphabetShift();
+            wrapper.scrollIntoView({ behavior:'smooth', block:'center' });
+        }
+    }
+
+    // ── TIMER ─────────────────────────────────────────────────────────────────
+    let timerInterval=null, timerRunning=false, timerStartEpoch=0, timerElapsed=0;
+
+    // ── LOCALSTORAGE PERSISTENCE ──────────────────────────────────────────────
+    const LS_LB  = 'cryptoctf_leaderboard';
+    const LS_ATT = 'cryptoctf_attempts';
+
+    function loadFromStorage() {
+        try {
+            const lb  = localStorage.getItem(LS_LB);
+            const att = localStorage.getItem(LS_ATT);
+            return {
+                leaderboard:  lb  ? JSON.parse(lb)  : [],
+                allAttempts:  att ? JSON.parse(att) : []
+            };
+        } catch(e) { return { leaderboard: [], allAttempts: [] }; }
+    }
+
+    function saveToStorage() {
+        try {
+            localStorage.setItem(LS_LB,  JSON.stringify(leaderboard));
+            localStorage.setItem(LS_ATT, JSON.stringify(allAttempts));
+        } catch(e) { console.warn('localStorage save failed:', e); }
+    }
+
+    const stored = loadFromStorage();
+    let leaderboard  = stored.leaderboard;
+    let allAttempts  = stored.allAttempts;
+    const CORRECT_FINAL = 'INDUSTRIAL SECURITY MATTERS';
+
+    function getCurrentElapsed() {
+        return timerRunning ? timerElapsed + Math.floor((Date.now()-timerStartEpoch)/1000) : timerElapsed;
+    }
+    function renderTimer() {
+        const e=getCurrentElapsed(), m=Math.floor(e/60), s=e%60;
+        document.getElementById('finalTimer').textContent=`${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+    }
+    function startStopTimer() {
+        if (!timerRunning) {
+            timerRunning=true; timerStartEpoch=Date.now();
+            timerInterval=setInterval(renderTimer,500);
+            document.getElementById('timerToggleBtn').textContent='[ ⏸ PAUSE TIMER ]';
+            document.getElementById('finalAnswer').disabled=false;
+            document.getElementById('finalAnswer').placeholder='Your decrypted message...';
+            document.getElementById('lockedMsg').style.display='none';
+        } else {
+            timerElapsed+=Math.floor((Date.now()-timerStartEpoch)/1000);
+            timerRunning=false; clearInterval(timerInterval);
+            document.getElementById('timerToggleBtn').textContent='[ ▶ RESUME TIMER ]';
+        }
+    }
+    function resetTimerBtn() {
+        timerRunning=false; timerElapsed=0; clearInterval(timerInterval); renderTimer();
+        document.getElementById('timerToggleBtn').textContent='[ ▶ START TIMER ]';
+        document.getElementById('finalAnswer').disabled=true;
+        document.getElementById('finalAnswer').placeholder='Start the timer to unlock...';
+        document.getElementById('lockedMsg').style.display='block';
+    }
+    // ── ALPHABET EXPLORER ────────────────────────────────────────────────────
+    const ALPHA = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    let currentShift = 3;
+    let highlightedCol = -1;
+
+    function buildAlphaTable() {
+        const headerRow = document.getElementById('alphaHeaderRow');
+        const plainRow  = document.getElementById('alphaPlainRow');
+        const cipherRow = document.getElementById('alphaCipherRow');
+        headerRow.innerHTML = '<th style="color:#8b949e;font-size:0.6rem;">ROW</th>';
+        plainRow.innerHTML  = '<td style="color:#8b949e;font-size:0.65rem;padding:4px;border:none;">PLAIN</td>';
+        cipherRow.innerHTML = '<td style="color:#8b949e;font-size:0.65rem;padding:4px;border:none;">CIPHER</td>';
+
+        for (let i = 0; i < 26; i++) {
+            const shiftedIdx = (i + currentShift) % 26;
+            const th = document.createElement('th');
+            th.textContent = i + 1;
+            headerRow.appendChild(th);
+
+            const tdPlain = document.createElement('td');
+            tdPlain.textContent = ALPHA[i];
+            tdPlain.className = 'plain';
+            tdPlain.dataset.col = i;
+            tdPlain.onclick = () => highlightCol(i, 'plain');
+            plainRow.appendChild(tdPlain);
+
+            const tdCipher = document.createElement('td');
+            tdCipher.textContent = ALPHA[shiftedIdx];
+            tdCipher.className = 'cipher';
+            tdCipher.dataset.col = i;
+            tdCipher.onclick = () => highlightCol(i, 'cipher');
+            cipherRow.appendChild(tdCipher);
+        }
+        document.getElementById('shiftLabel').textContent = `SHIFT: ${currentShift}`;
+        if (highlightedCol >= 0) applyHighlight(highlightedCol);
+    }
+
+    function highlightCol(col, fromRow) {
+        highlightedCol = col;
+        applyHighlight(col);
+        // auto-fill lookup
+        const plainRow  = document.getElementById('alphaPlainRow');
+        const cipherRow = document.getElementById('alphaCipherRow');
+        const pLetter = plainRow.children[col+1].textContent;
+        const cLetter = cipherRow.children[col+1].textContent;
+        if (fromRow === 'plain') {
+            document.getElementById('lookupInput').value = pLetter;
+            document.getElementById('lookupResult').textContent = cLetter;
+            document.getElementById('lookupDir').textContent = '(encrypt)';
+        } else {
+            document.getElementById('lookupInput').value = cLetter;
+            document.getElementById('lookupResult').textContent = pLetter;
+            document.getElementById('lookupDir').textContent = '(decrypt)';
+        }
+    }
+
+    function applyHighlight(col) {
+        document.querySelectorAll('.alpha-table td, .alpha-table th').forEach(el => el.classList.remove('highlighted'));
+        const plainRow  = document.getElementById('alphaPlainRow');
+        const cipherRow = document.getElementById('alphaCipherRow');
+        const hdr       = document.getElementById('alphaHeaderRow');
+        if (plainRow.children[col+1])  plainRow.children[col+1].classList.add('highlighted');
+        if (cipherRow.children[col+1]) cipherRow.children[col+1].classList.add('highlighted');
+        if (hdr.children[col+1])       hdr.children[col+1].classList.add('highlighted');
+    }
+
+    function updateAlphabetShift() {
+        currentShift = ((parseInt(document.getElementById('alphaShift').value)||1) % 26 + 26) % 26 || 1;
+        document.getElementById('alphaShift').value = currentShift;
+        highlightedCol = -1;
+        buildAlphaTable();
+        lookupLetter();
+    }
+
+    function changeShift(delta) {
+        let v = ((currentShift - 1 + delta + 25) % 25) + 1;
+        document.getElementById('alphaShift').value = v;
+        updateAlphabetShift();
+    }
+
+    function lookupLetter() {
+        const raw = document.getElementById('lookupInput').value.toUpperCase().replace(/[^A-Z]/g,'');
+        const el  = document.getElementById('lookupResult');
+        const dir = document.getElementById('lookupDir');
+        if (!raw) { el.textContent = '?'; dir.textContent = ''; return; }
+        const idx = ALPHA.indexOf(raw);
+        const encIdx = (idx + currentShift) % 26;
+        const decIdx = (idx - currentShift + 26) % 26;
+        // highlight matching column in table
+        const plainRow = document.getElementById('alphaPlainRow');
+        for (let i = 1; i < plainRow.children.length; i++) {
+            if (plainRow.children[i].textContent === raw) { highlightCol(i-1, 'plain'); break; }
+        }
+        el.textContent = ALPHA[encIdx];
+        dir.textContent = '(encrypt)';
+    }
+
+    // ── FREQUENCY ANALYSER ────────────────────────────────────────────────────
+    function analyseFrequency() {
+        const text   = document.getElementById('freqInput').value.toUpperCase().replace(/[^A-Z]/g,'');
+        const counts = new Array(26).fill(0);
+        for (const c of text) counts[c.charCodeAt(0)-65]++;
+        const total  = text.length || 1;
+        const maxCnt = Math.max(...counts, 1);
+
+        // Find most frequent
+        let maxIdx = 0;
+        for (let i=1;i<26;i++) if(counts[i]>counts[maxIdx]) maxIdx=i;
+
+        const barsEl = document.getElementById('freqBars');
+        barsEl.innerHTML = '';
+        for (let i=0;i<26;i++) {
+            const pct    = counts[i]/maxCnt;
+            const height = Math.round(pct*90);
+            const wrap   = document.createElement('div');
+            wrap.className = 'freq-bar-wrap';
+            const countEl = document.createElement('div');
+            countEl.className = 'freq-bar-count';
+            countEl.textContent = counts[i] > 0 ? counts[i] : '';
+            const bar = document.createElement('div');
+            bar.className = 'freq-bar' + (i===maxIdx?' highlight':'');
+            bar.style.height = height+'px';
+            bar.title = `${ALPHA[i]}: ${counts[i]} (${Math.round(counts[i]/total*100)}%)`;
+            const lbl = document.createElement('div');
+            lbl.className = 'freq-bar-label';
+            lbl.textContent = ALPHA[i];
+            wrap.appendChild(countEl);
+            wrap.appendChild(bar);
+            wrap.appendChild(lbl);
+            barsEl.appendChild(wrap);
+        }
+
+        // Stats
+        const statsEl = document.getElementById('freqStats');
+        if (text.length === 0) { statsEl.innerHTML = ''; return; }
+        const sorted = counts.map((c,i)=>({c,l:ALPHA[i]})).filter(x=>x.c>0).sort((a,b)=>b.c-a.c);
+        const top3   = sorted.slice(0,3).map(x=>`<span>${x.l}</span> (${x.c})`).join(', ');
+        const guessShift = (maxIdx - 4 + 26) % 26; // E = index 4
+        statsEl.innerHTML =
+            `Most frequent: ${top3}<br>` +
+            `Total letters: <span>${text.length}</span><br>` +
+            `Guessed shift (if top letter = E): <span style="color:#f0c040;font-size:1rem;font-weight:bold;">${guessShift}</span>` +
+            (guessShift>0 ? ` &nbsp;<span style="color:#8b949e;font-size:0.72rem;">(try this in the Alphabet Explorer →)</span>` : '');
+    }
+
+    // ── COMPARE ───────────────────────────────────────────────────────────────
+    function compareAnswers(user, correct) {
+        const u=user.replace(/\s+/g,''), c=correct.replace(/\s+/g,'');
+        let m=0;
+        for (let i=0;i<Math.min(u.length,c.length);i++) if(u[i]===c[i]) m++;
+        return {matches:m, accuracy:c.length?Math.round(100*m/c.length):0};
+    }
+
+    // ── SUBMIT ────────────────────────────────────────────────────────────────
+    function submitFinalChallenge() {
+        const answer = document.getElementById('finalAnswer').value.toUpperCase().replace(/\s+/g,' ').trim();
+        const name   = document.getElementById('studentName').value.trim();
+        const email  = document.getElementById('studentEmail').value.trim();
+        const el     = document.getElementById('finalResult');
+
+        if (document.getElementById('finalAnswer').disabled) { el.innerHTML=msg('err','// ERROR: Start the timer first.'); return; }
+        if (!answer) { el.innerHTML=msg('err','// ERROR: No answer provided.'); return; }
+        if (!name)   { el.innerHTML=msg('err','// ERROR: Name required.'); return; }
+        if (!email||!email.includes('@')) { el.innerHTML=msg('err','// ERROR: Valid email required.'); return; }
+
+        // Freeze timer
+        if (timerRunning) {
+            timerElapsed+=Math.floor((Date.now()-timerStartEpoch)/1000);
+            timerRunning=false; clearInterval(timerInterval);
+            document.getElementById('timerToggleBtn').textContent='[ ▶ START TIMER ]';
+        }
+
+        const elapsed     = timerElapsed;
+        const mm=Math.floor(elapsed/60), ss=elapsed%60;
+        const timeString  = `${String(mm).padStart(2,'0')}:${String(ss).padStart(2,'0')}`;
+        const submittedAt = new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+
+        const {matches, accuracy} = compareAnswers(answer, CORRECT_FINAL);
+        const fullyCorrect = (answer===CORRECT_FINAL);
+        const speedBonus   = matches>0 ? Math.max(0, 200-elapsed) : 0;
+        const totalScore   = matches===0 ? 0 : Math.round(accuracy+speedBonus);
+
+        const newEntry = {name,email,time:elapsed,timeString,submittedAt,score:totalScore,accuracy,correct:fullyCorrect,matches};
+        const newAttempt = {name,email,timeString,submittedAt,accuracy,score:totalScore,status:matches===0?'No match':fullyCorrect?'Correct':'Partial',timestamp:new Date().toISOString()};
+
+        // Check if this person (matched by email) already has a record
+        const existingLBIdx  = leaderboard.findIndex(p => p.email.toLowerCase() === email.toLowerCase());
+        const existingAtIdx  = allAttempts.findIndex(p => p.email.toLowerCase() === email.toLowerCase());
+
+        let improved = false;
+        if (existingLBIdx >= 0) {
+            const existing = leaderboard[existingLBIdx];
+            // Update only if new score is better, or same score but faster
+            if (totalScore > existing.score || (totalScore === existing.score && elapsed < existing.time)) {
+                leaderboard[existingLBIdx] = newEntry;
+                improved = true;
+            }
+        } else {
+            leaderboard.push(newEntry);
+            improved = true;
+        }
+
+        if (existingAtIdx >= 0) {
+            allAttempts[existingAtIdx] = newAttempt; // always overwrite attempt log with latest
+        } else {
+            allAttempts.push(newAttempt);
+        }
+
+        leaderboard.sort((a,b)=>{
+            if(a.correct!==b.correct) return a.correct?-1:1;
+            if(b.score!==a.score) return b.score-a.score;
+            return a.time-b.time;
+        });
+        updateLeaderboard();
+        saveToStorage();
+        const pos=leaderboard.findIndex(p=>p.email.toLowerCase()===email.toLowerCase())+1;
+
+        let resultHTML;
+        const updateNote = existingLBIdx >= 0
+            ? (improved ? '// RECORD UPDATED — new best score!' : '// NO IMPROVEMENT — your previous record was better.')
+            : '// NEW ENTRY recorded.';
+
+        if (matches===0) {
+            resultHTML=msg('err',
+                `// NO MATCH — 0 letters correct.<br><br>` +
+                `Solve time   : ${timeString}<br>` +
+                `Submitted at : ${submittedAt}<br>` +
+                `Score        : 0 pts<br>` +
+                `Rank         : #${pos}<br><br>` +
+                `${updateNote}<br>` +
+                `Use the Alphabet Shift Explorer — try shift 3!`
+            );
+        } else if (fullyCorrect) {
+            resultHTML=msg('ok',
+                `// ACCESS GRANTED ✓ Perfect!<br><br>` +
+                `Solve time   : ${timeString}<br>` +
+                `Submitted at : ${submittedAt}<br>` +
+                `Speed bonus  : +${speedBonus}<br>` +
+                `Score        : ${totalScore} pts<br>` +
+                `Rank         : #${pos}<br><br>` +
+                `${updateNote}<br>` +
+                `📧 Winner notification → ${email}`
+            );
+        } else {
+            resultHTML=msg('partial',
+                `// PARTIAL MATCH ⚠ ${matches} letter(s) correct (${accuracy}%)<br><br>` +
+                `Solve time   : ${timeString}<br>` +
+                `Submitted at : ${submittedAt}<br>` +
+                `Speed bonus  : +${speedBonus}<br>` +
+                `Score        : ${totalScore} pts<br>` +
+                `Rank         : #${pos}<br><br>` +
+                `${updateNote}<br>` +
+                `Keep improving your accuracy!`
+            );
+        }
+        el.innerHTML=resultHTML;
+
+        // Clear fields & reset timer
+        document.getElementById('finalAnswer').value='';
+        document.getElementById('studentName').value='';
+        document.getElementById('studentEmail').value='';
+        resetTimerBtn();
+    }
+
+    function updateLeaderboard() {
+        const tbody=document.getElementById('leaderboardBody');
+        if (leaderboard.length===0) { tbody.innerHTML='<tr><td class="rank-gold">🥇 1</td><td>Be the first!</td><td>--:--</td><td>--:--:--</td><td>-</td></tr>'; return; }
+        tbody.innerHTML=leaderboard.map((e,i)=>{
+            const cls=i===0?'rank-gold':i===1?'rank-silver':i===2?'rank-bronze':'';
+            const medal=i===0?'🥇':i===1?'🥈':i===2?'🥉':'';
+            return `<tr><td class="${cls}">${medal} ${i+1}</td><td>${e.name}</td><td>${e.timeString}</td><td>${e.submittedAt||'--:--:--'}</td><td>${e.score}</td></tr>`;
+        }).join('');
+    }
+
+    function clearSession() {
+        if (!confirm('Clear ALL session data? This will wipe the leaderboard and all attempts from this device.')) return;
+        localStorage.removeItem(LS_LB);
+        localStorage.removeItem(LS_ATT);
+        leaderboard  = [];
+        allAttempts  = [];
+        updateLeaderboard();
+        alert('Session data cleared.');
+    }
+
+    function exportCSV() {
+        if (allAttempts.length===0) { alert('No attempts yet to export.'); return; }
+        const header=['Name','Email','Solve Time','Submitted At','Accuracy(%)','Score','Status','Timestamp'];
+        const rows=allAttempts.map(a=>[a.name,a.email,a.timeString,a.submittedAt,a.accuracy,a.score,a.status,a.timestamp].map(v=>`"${v}"`).join(','));
+        const csv=[header.join(','),...rows].join('\n');
+        const blob=new Blob([csv],{type:'text/csv'});
+        const url=URL.createObjectURL(blob);
+        const a=document.createElement('a');
+        a.href=url; a.download='crypto_ctf_session.csv'; a.click();
+        URL.revokeObjectURL(url);
+    }
+
+    buildAlphaTable();
+    analyseFrequency();
+    renderTimer();
+    updateLeaderboard(); // render any persisted leaderboard on page load
+</script>
+</body>
+</html>

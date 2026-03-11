@@ -30,12 +30,12 @@ def init_db():
         INSERT INTO users VALUES (1,  'student', 'student', '1234');
         INSERT INTO users VALUES (2,  'alice',   'alice',   '9999');
         INSERT INTO users VALUES (3,  'bob',     'bob',     '8888');
-        INSERT INTO users VALUES (4,  'charlie', 'lottery', '0000');
+        INSERT INTO users VALUES (9172,  'charlie', 'lottery', '0000');
 
         INSERT INTO accounts VALUES (10,  1, 50.00);
         INSERT INTO accounts VALUES (20,  2, 1200.00);
         INSERT INTO accounts VALUES (30,  3, 340.00);
-        INSERT INTO accounts VALUES (9129373, 4, 3000000.00);
+        INSERT INTO accounts VALUES (9129373, 9172, 3000000.00);
     """)
     con.commit()
     con.close()

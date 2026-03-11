@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SecureBank™ — Account</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@600;800&family=Exo+2:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+  :root{--green:#00ff9f;--cyan:#00d4ff;--red:#ff3c5f;--yellow:#ffe600;--bg:#060a0f;--panel:#0a1628;--border:#0d2a4a;--text:#c8e6ff;--dim:#4a7a9b;}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--bg);color:var(--text);font-family:'Exo 2',sans-serif;min-height:100vh;}
+  body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(0,212,255,.03)1px,transparent 1px),linear-gradient(90deg,rgba(0,212,255,.03)1px,transparent 1px);background-size:60px 60px;animation:g 20s linear infinite;pointer-events:none;z-index:0;}
+  @keyframes g{to{background-position:0 60px;}}
+  nav{position:relative;z-index:2;background:var(--panel);border-bottom:1px solid var(--border);padding:16px 32px;display:flex;align-items:center;justify-content:space-between;}
+  .nav-brand{font-family:'Orbitron',monospace;font-size:1.1rem;font-weight:800;color:var(--green);letter-spacing:2px;}
+  .nav-links a{font-family:'Share Tech Mono',monospace;font-size:.8rem;color:var(--dim);text-decoration:none;margin-left:20px;}
+  .nav-links a:hover{color:var(--yellow);}
+  main{position:relative;z-index:2;max-width:600px;margin:0 auto;padding:40px 24px;}
+
+  .not-found{text-align:center;padding:80px 20px;font-family:'Share Tech Mono',monospace;color:var(--dim);}
+  .not-found .big{font-size:3rem;margin-bottom:16px;}
+
+  .acc-header{background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:28px;margin-bottom:24px;position:relative;overflow:hidden;}
+  .acc-header::after{content:'';position:absolute;top:0;right:0;width:180px;height:100%;background:radial-gradient(ellipse at 100% 50%,rgba(0,212,255,.06),transparent 70%);}
+
+  .owner-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+  .owner-row .name{font-family:'Orbitron',monospace;font-size:1.2rem;color:var(--cyan);letter-spacing:2px;}
+  .owner-row .acc-num{font-family:'Share Tech Mono',monospace;font-size:.8rem;color:var(--dim);}
+
+  .balance-big{font-family:'Orbitron',monospace;font-size:2.2rem;font-weight:800;}
+  .balance-big.rich{color:var(--yellow);text-shadow:0 0 20px rgba(255,230,0,.3);}
+  .balance-big.poor{color:var(--green);}
+  .balance-label{font-family:'Share Tech Mono',monospace;font-size:.75rem;color:var(--dim);letter-spacing:3px;margin-bottom:8px;}
+
+  .warning-banner{background:rgba(255,60,95,.08);border:1px solid rgba(255,60,95,.3);border-radius:4px;padding:14px 18px;margin-bottom:24px;font-family:'Share Tech Mono',monospace;font-size:.8rem;color:var(--red);}
+  .own-banner{background:rgba(0,255,159,.05);border:1px solid rgba(0,255,159,.2);border-radius:4px;padding:14px 18px;margin-bottom:24px;font-family:'Share Tech Mono',monospace;font-size:.8rem;color:var(--green);}
+
+  .transfer-card{background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:28px;}
+  .transfer-card h3{font-family:'Orbitron',monospace;font-size:.85rem;color:var(--cyan);letter-spacing:2px;margin-bottom:20px;padding-bottom:12px;border-bottom:1px solid var(--border);}
+
+  .field{margin-bottom:16px;}
+  .field label{display:block;font-family:'Share Tech Mono',monospace;font-size:.75rem;color:var(--dim);letter-spacing:2px;margin-bottom:8px;}
+  .field input{width:100%;background:#020810;border:1px solid var(--border);border-radius:3px;padding:11px 14px;color:var(--green);font-family:'Share Tech Mono',monospace;font-size:.95rem;outline:none;transition:border-color .2s;}
+  .field input:focus{border-color:var(--cyan);}
+  .field input[readonly]{color:var(--dim);cursor:not-allowed;}
+
+  .pin-hint{font-family:'Share Tech Mono',monospace;font-size:.75rem;color:var(--dim);margin-top:6px;}
+  .pin-hint strong{color:var(--yellow);}
+
+  .btn-transfer{width:100%;margin-top:8px;padding:14px;background:transparent;border:2px solid var(--red);border-radius:3px;color:var(--red);font-family:'Orbitron',monospace;font-size:.9rem;letter-spacing:2px;cursor:pointer;transition:all .2s;}
+  .btn-transfer:hover{background:var(--red);color:var(--bg);}
+
+  .devtools-hint{margin-top:16px;background:rgba(255,230,0,.05);border:1px solid rgba(255,230,0,.2);border-radius:3px;padding:12px 14px;font-family:'Share Tech Mono',monospace;font-size:.75rem;color:var(--yellow);}
+
+  @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+  main>*{animation:fadeUp .5s ease both;}
+  main>*:nth-child(2){animation-delay:.1s;}
+  main>*:nth-child(3){animation-delay:.2s;}
+</style>
+</head>
+<body>
+<nav>
+  <div class="nav-brand">SecureBank™</div>
+  <div class="nav-links">
+    <a href="/dashboard">← Dashboard</a>
+    <a href="/instructions">Instructions</a>
+  </div>
+</nav>
+<main>
+
+{% if not account %}
+<div class="not-found">
+  <div class="big">⚠</div>
+  <p>No account found for ID: <strong>{{ acc_id }}</strong></p>
+  <p style="margin-top:12px;font-size:.8rem;">Try the <a href="/find-user" style="color:var(--cyan)">Find User</a> tool first.</p>
+</div>
+
+{% else %}
+
+{% if account.username != viewer %}
+<div class="warning-banner">
+  ⚠ ACCESS GRANTED — You are viewing <strong>{{ account.username }}</strong>'s account.
+  The server did not verify ownership. This is an IDOR vulnerability.
+</div>
+{% else %}
+<div class="own-banner">✓ Your own account — ID {{ account.id }}</div>
+{% endif %}
+
+<div class="acc-header">
+  <div class="owner-row">
+    <div class="name">{{ account.username | upper }}</div>
+    <div class="acc-num">ACC #{{ account.id }}</div>
+  </div>
+  <div class="balance-label">CURRENT BALANCE</div>
+  <div class="balance-big {{ 'rich' if account.balance > 100000 else 'poor' }}">
+    €{{ "{:,.2f}".format(account.balance) }}
+  </div>
+</div>
+
+<div class="transfer-card">
+  <h3>◈ WIRE TRANSFER</h3>
+  <form method="POST" action="/transfer">
+    <input type="hidden" name="from_acc" value="{{ account.id }}">
+    <!-- ⚠️ VULNERABILITY: account_id used for PIN verification is sent by client -->
+    <input type="hidden" name="account_id" value="{{ account.id }}">
+
+    <div class="field">
+      <label>FROM ACCOUNT</label>
+      <input type="text" value="ACC #{{ account.id }} — {{ account.username }}" readonly>
+    </div>
+    <div class="field">
+      <label>TO USER</label>
+      <input type="text" name="to_user" value="{{ viewer }}" placeholder="recipient username">
+    </div>
+    <div class="field">
+      <label>AMOUNT (€)</label>
+      <input type="number" name="amount" placeholder="0.00" min="1" step="0.01">
+    </div>
+    <div class="field">
+      <label>CONFIRM WITH PIN</label>
+      <input type="password" name="pin" placeholder="enter PIN" maxlength="4">
+      {% if account.username != viewer %}
+      <div class="pin-hint">💡 You don't know <strong>{{ account.username }}</strong>'s PIN — but open DevTools (F12) and inspect this form's hidden fields...</div>
+      {% endif %}
+    </div>
+    <button type="submit" class="btn-transfer">INITIATE TRANSFER</button>
+  </form>
+  {% if account.username != viewer %}
+  <div class="devtools-hint">
+    🔧 <strong>DevTools hint:</strong> Right-click the page → Inspect → find
+    <code style="color:var(--green)">&lt;input type="hidden" name="account_id"&gt;</code>
+    and change the value to <code style="color:var(--green)">{{ viewer_acc_id }}</code> (your account). Then use your PIN: <strong>1234</strong>.
+  </div>
+  {% endif %}
+</div>
+{% endif %}
+
+</main>
+</body>
+</html>

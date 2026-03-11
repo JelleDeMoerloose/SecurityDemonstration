@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CyberBank CTF – Instructions</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&family=Exo+2:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --green: #00ff9f;
+    --cyan: #00d4ff;
+    --red: #ff3c5f;
+    --yellow: #ffe600;
+    --bg: #060a0f;
+    --panel: #0a1628;
+    --border: #0d2a4a;
+    --text: #c8e6ff;
+    --dim: #4a7a9b;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Exo 2', sans-serif;
+    font-weight: 300;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* animated grid background */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image:
+      linear-gradient(rgba(0,212,255,.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,212,255,.03) 1px, transparent 1px);
+    background-size: 60px 60px;
+    animation: gridScroll 20s linear infinite;
+    pointer-events: none;
+    z-index: 0;
+  }
+  @keyframes gridScroll { to { background-position: 0 60px; } }
+
+  /* scanlines */
+  body::after {
+    content: '';
+    position: fixed; inset: 0;
+    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,.15) 2px, rgba(0,0,0,.15) 4px);
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  .container {
+    position: relative; z-index: 2;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 40px 24px 80px;
+  }
+
+  /* ── HEADER ── */
+  .header {
+    text-align: center;
+    margin-bottom: 60px;
+  }
+  .glitch-wrap { position: relative; display: inline-block; }
+  .site-title {
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(2rem, 6vw, 3.5rem);
+    font-weight: 900;
+    color: var(--green);
+    text-shadow: 0 0 20px rgba(0,255,159,.5), 0 0 60px rgba(0,255,159,.2);
+    letter-spacing: 4px;
+    animation: flicker 4s infinite;
+  }
+  @keyframes flicker {
+    0%,94%,96%,100% { opacity: 1; }
+    95% { opacity: .4; }
+  }
+  .glitch-wrap::before, .glitch-wrap::after {
+    content: 'Hacking SecureBank';
+    position: absolute; top: 0; left: 0; width: 100%;
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(2rem, 6vw, 3.5rem);
+    font-weight: 900;
+    letter-spacing: 4px;
+  }
+  .glitch-wrap::before { color: var(--red); clip-path: polygon(0 30%,100% 30%,100% 50%,0 50%); animation: glitch1 3s infinite; }
+  .glitch-wrap::after  { color: var(--cyan); clip-path: polygon(0 60%,100% 60%,100% 80%,0 80%); animation: glitch2 3s infinite; }
+  @keyframes glitch1 { 0%,90%,100%{transform:none} 92%{transform:translateX(-4px)} 94%{transform:translateX(4px)} }
+  @keyframes glitch2 { 0%,88%,100%{transform:none} 90%{transform:translateX(3px)} 93%{transform:translateX(-3px)} }
+
+  .subtitle {
+    font-family: 'Share Tech Mono', monospace;
+    color: var(--cyan);
+    font-size: 1rem;
+    margin-top: 12px;
+    letter-spacing: 3px;
+    opacity: .8;
+  }
+  .tagline {
+    margin-top: 16px;
+    font-size: 1.1rem;
+    color: var(--dim);
+    max-width: 600px;
+    margin-left: auto; margin-right: auto;
+    line-height: 1.7;
+  }
+  .tagline span { color: var(--yellow); }
+
+  /* ── SCENARIO BOX ── */
+  .scenario-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--green);
+    border-radius: 4px;
+    padding: 28px 32px;
+    margin-bottom: 48px;
+    position: relative;
+    overflow: hidden;
+  }
+  .scenario-card::before {
+    content: '// MISSION_BRIEF.txt';
+    font-family: 'Share Tech Mono', monospace;
+    font-size: .75rem;
+    color: var(--green);
+    position: absolute; top: 12px; right: 16px;
+    opacity: .5;
+  }
+  .scenario-card h2 {
+    font-family: 'Orbitron', monospace;
+    font-size: 1rem;
+    color: var(--yellow);
+    letter-spacing: 2px;
+    margin-bottom: 16px;
+  }
+  .scenario-card p {
+    line-height: 1.8;
+    color: var(--text);
+    margin-bottom: 12px;
+  }
+  .scenario-card p:last-child { margin-bottom: 0; }
+  .highlight { color: var(--green); font-weight: 600; }
+  .money { color: var(--yellow); font-family: 'Share Tech Mono', monospace; }
+
+  /* ── CREDENTIAL BOX ── */
+  .creds-box {
+    background: rgba(0,255,159,.05);
+    border: 1px solid rgba(0,255,159,.3);
+    border-radius: 4px;
+    padding: 20px 24px;
+    margin: 24px 0;
+    font-family: 'Share Tech Mono', monospace;
+  }
+  .creds-box .label { color: var(--dim); font-size: .8rem; margin-bottom: 8px; letter-spacing: 2px; }
+  .cred-row { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 8px; }
+  .cred-item { color: var(--green); font-size: 1rem; }
+  .cred-item span { color: var(--dim); }
+
+  /* ── STEPS ── */
+  .steps-title {
+    font-family: 'Orbitron', monospace;
+    font-size: 1.1rem;
+    color: var(--cyan);
+    letter-spacing: 3px;
+    margin-bottom: 32px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .step {
+    display: grid;
+    grid-template-columns: 64px 1fr;
+    gap: 24px;
+    margin-bottom: 40px;
+    position: relative;
+  }
+  .step:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    left: 31px; top: 64px; bottom: -40px;
+    width: 2px;
+    background: linear-gradient(to bottom, var(--border), transparent);
+  }
+
+  .step-num {
+    width: 64px; height: 64px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Orbitron', monospace;
+    font-size: 1.3rem;
+    font-weight: 700;
+    flex-shrink: 0;
+    position: relative;
+  }
+  .step-num::before {
+    content: '';
+    position: absolute; inset: -3px;
+    border-radius: 50%;
+    background: conic-gradient(var(--step-color) var(--pct, 100%), var(--border) 0);
+    z-index: -1;
+  }
+  .step-1 .step-num { background: var(--panel); color: var(--yellow); --step-color: var(--yellow); }
+  .step-2 .step-num { background: var(--panel); color: var(--red);    --step-color: var(--red); }
+  .step-3 .step-num { background: var(--panel); color: var(--cyan);   --step-color: var(--cyan); }
+  .step-4 .step-num { background: var(--panel); color: var(--green);  --step-color: var(--green); }
+
+  .step-body h3 {
+    font-family: 'Orbitron', monospace;
+    font-size: .95rem;
+    letter-spacing: 2px;
+    margin-bottom: 10px;
+  }
+  .step-1 .step-body h3 { color: var(--yellow); }
+  .step-2 .step-body h3 { color: var(--red); }
+  .step-3 .step-body h3 { color: var(--cyan); }
+  .step-4 .step-body h3 { color: var(--green); }
+
+  .step-body p { color: var(--text); line-height: 1.8; margin-bottom: 10px; }
+
+  .vuln-badge {
+    display: inline-block;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: .75rem;
+    padding: 3px 10px;
+    border-radius: 2px;
+    margin-bottom: 10px;
+    letter-spacing: 1px;
+  }
+  .badge-sql  { background: rgba(255,60,95,.15);  color: var(--red);   border: 1px solid var(--red); }
+  .badge-idor { background: rgba(0,212,255,.1);   color: var(--cyan);  border: 1px solid var(--cyan); }
+  .badge-bac  { background: rgba(0,255,159,.1);   color: var(--green); border: 1px solid var(--green); }
+
+  .code-block {
+    background: #020810;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 14px 18px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: .9rem;
+    color: var(--green);
+    margin: 10px 0;
+    overflow-x: auto;
+    white-space: pre;
+  }
+  .code-block .comment { color: var(--dim); }
+
+  .hint {
+    font-size: .85rem;
+    color: var(--dim);
+    font-style: italic;
+    margin-top: 6px;
+  }
+  .hint strong { color: var(--yellow); font-style: normal; }
+
+  /* ── VULN LEGEND ── */
+  .legend {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 24px 28px;
+    margin-top: 48px;
+  }
+  .legend h2 {
+    font-family: 'Orbitron', monospace;
+    font-size: .9rem;
+    color: var(--yellow);
+    letter-spacing: 2px;
+    margin-bottom: 20px;
+  }
+  .legend-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+  }
+  .legend-item {
+    padding: 14px;
+    border-radius: 4px;
+    border-left: 3px solid;
+  }
+  .legend-item.sql  { border-color: var(--red);   background: rgba(255,60,95,.07); }
+  .legend-item.idor { border-color: var(--cyan);  background: rgba(0,212,255,.05); }
+  .legend-item.bac  { border-color: var(--green); background: rgba(0,255,159,.05); }
+  .legend-item h4 {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: .8rem;
+    letter-spacing: 1px;
+    margin-bottom: 6px;
+  }
+  .legend-item.sql  h4 { color: var(--red); }
+  .legend-item.idor h4 { color: var(--cyan); }
+  .legend-item.bac  h4 { color: var(--green); }
+  .legend-item p { font-size: .85rem; color: var(--dim); line-height: 1.6; }
+
+  /* ── CTA ── */
+  .cta-wrap { text-align: center; margin-top: 56px; }
+  .btn-hack {
+    display: inline-block;
+    font-family: 'Orbitron', monospace;
+    font-size: 1.1rem;
+    font-weight: 700;
+    letter-spacing: 3px;
+    padding: 18px 52px;
+    background: transparent;
+    color: var(--green);
+    border: 2px solid var(--green);
+    border-radius: 4px;
+    text-decoration: none;
+    position: relative;
+    overflow: hidden;
+    transition: color .2s;
+  }
+  .btn-hack::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: var(--green);
+    transform: translateX(-101%);
+    transition: transform .25s ease;
+    z-index: -1;
+  }
+  .btn-hack:hover { color: var(--bg); }
+  .btn-hack:hover::before { transform: none; }
+  .btn-hack::after {
+    content: '';
+    position: absolute;
+    top: -2px; right: -2px;
+    width: 10px; height: 10px;
+    border-top: 2px solid var(--yellow);
+    border-right: 2px solid var(--yellow);
+  }
+
+  .cta-sub {
+    margin-top: 16px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: .8rem;
+    color: var(--dim);
+    letter-spacing: 2px;
+  }
+
+  /* ── FOOTER ── */
+  .footer {
+    margin-top: 80px;
+    text-align: center;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: .75rem;
+    color: var(--border);
+    letter-spacing: 1px;
+  }
+  .footer a { color: var(--dim); text-decoration: none; }
+  .footer a:hover { color: var(--green); }
+
+  /* entrance animations */
+  @keyframes fadeUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:none; } }
+  .header        { animation: fadeUp .7s ease both; }
+  .scenario-card { animation: fadeUp .7s .2s ease both; }
+  .step          { animation: fadeUp .6s ease both; }
+  .step:nth-child(1) { animation-delay: .3s; }
+  .step:nth-child(2) { animation-delay: .45s; }
+  .step:nth-child(3) { animation-delay: .6s; }
+  .step:nth-child(4) { animation-delay: .75s; }
+  .legend        { animation: fadeUp .7s .9s ease both; }
+  .cta-wrap      { animation: fadeUp .7s 1s ease both; }
+
+  @media (max-width: 600px) {
+    .step { grid-template-columns: 48px 1fr; gap: 16px; }
+    .step-num { width: 48px; height: 48px; font-size: 1rem; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- HEADER -->
+  <header class="header">
+    <div class="glitch-wrap">
+      <h1 class="site-title">Hacking SecureBank</h1>
+    </div>
+    <p class="subtitle">// UGENT Engineering Technology: Informatics DEMO //</p>
+    <p class="tagline">
+      You have to steal <span>€500,000</span> from a lottery winner.<br>
+      No tools. No experience. Just your browser.
+    </p>
+  </header>
+
+  <!-- SCENARIO -->
+  <div class="scenario-card">
+    <h2>◈ MISSION BRIEFING</h2>
+    <p>
+      You've just logged into <span class="highlight">SecureBank</span>. Your account holds a measly <span class="money">€50</span>.
+      Somewhere in this system lives <span class="highlight">Charlie</span> — a lucky lottery winner sitting on
+      <span class="money">€3,000,000</span>.
+    </p>
+    <p>
+      The developers of SecureBank were… not great at their jobs.
+      Three classic vulnerabilities are lurking in the code.
+      Find them, chain them together, and drain <span class="money">€500,000</span> straight to your account.
+    </p>
+    <div class="creds-box">
+      <div class="label">YOUR LOGIN CREDENTIALS</div>
+      <div class="cred-row">
+        <div class="cred-item"><span>username: </span>student</div>
+        <div class="cred-item"><span>password: </span>student</div>
+        <div class="cred-item"><span>PIN: </span>1234</div>
+      </div>
+    </div>
+    <p class="hint">💡 Use these credentials at <strong>/login</strong>. They're real. The PIN will matter later.</p>
+  </div>
+
+  <!-- STEPS -->
+  <!-- STEP 1 -->
+<!-- STEP 1 -->
+<!-- STEP 1 -->
+<!-- STEP 1 -->
+<div class="step step-1">
+  <div class="step-num">01</div>
+  <div class="step-body">
+    <span class="vuln-badge badge-sql">SQL INJECTION</span>
+    <h3>FIND CHARLIE'S ACCOUNT ID</h3>
+    <p>
+      The bank has a <span class="highlight">Find User</span> feature, used to look up account IDs before transferring money.
+      Try typing a number like <code>1</code> or <code>2</code> and see what comes back.
+    </p>
+    <p>
+      Behind the scenes, your input gets placed directly into a database command that looks like this:
+    </p>
+    <div class="code-block"><span class="comment"># The query the server runs when you type "1"</span>
+SELECT username, account_id FROM users
+WHERE accounts.user_id = 1</div>
+    <p>
+      The database reads this as: <em>"give me the user where the ID equals 1"</em> and returns exactly that one person.
+      But in database language, you can chain extra conditions using <code>OR</code>, just like in plain English.
+      And the developer forgot to limit what you can type into that field.
+    </p>
+    <p>
+      Your challenge: add an <code>OR</code> condition to the search input that is <em>always true</em>,
+      so the database ignores the filter and returns <strong>every user at once</strong>.
+    </p>
+    <p class="hint">
+      💡 <strong>Hint:</strong> Is <code>1=1</code> always true? Try adding that after an <code>OR</code> in the input field.
+      Once you see all users listed, find Charlie and note his <strong>account ID</strong> for the next step.
+    </p>
+  </div>
+</div>
+ <!-- STEP 2 -->
+
+<!-- STEP 2 -->
+<!-- STEP 2 -->
+<!-- STEP 2 -->
+<div class="step step-2">
+  <div class="step-num">02</div>
+  <div class="step-body">
+    <span class="vuln-badge badge-idor">IDOR — INSECURE DIRECT OBJECT REFERENCE</span>
+    <h3>BREAK INTO CHARLIE'S ACCOUNT</h3>
+    <p>
+      Now that you have Charlie's account ID, navigate to your <span class="highlight">My Account</span> page.
+      This is the page where you can transfer money to other accounts.
+    </p>
+    <p>
+      Have a good look around the page. Does anything give away how the bank keeps track of
+      which account it is showing you? Think about what information the browser needs to
+      display the right account, and where that information might live.
+    </p>
+    <p>
+      Once you figure that out, ask yourself: what would happen if that value belonged to someone else?
+    </p>
+    <p class="hint">
+      💡 <strong>Hint:</strong> Look at the URL and make changes to it. A secure server should always check whether the logged in user actually owns the account they are requesting. This one does not. It simply loads whatever account ID is given to it, no questions asked.
+    </p>
+  </div>
+</div>
+
+    <!-- STEP 3 -->
+<div class="step step-3">
+  <div class="step-num">03</div>
+  <div class="step-body">
+    <span class="vuln-badge badge-bac">BROKEN ACCESS CONTROL — HIDDEN FIELD MANIPULATION</span>
+    <h3>BYPASS THE PIN VERIFICATION</h3>
+    <p>
+      You are on Charlie's account page. Fill in the transfer form and try to send
+      <span class="money">€500,000</span> to yourself. But the form asks for a PIN and
+      you have no idea what Charlie's PIN is. Dead end?
+    </p>
+    <p>
+      Here is something most people do not know: every form on a website is built out of
+      small pieces of code called <strong>fields</strong>. Most fields are visible, like the
+      amount you type in or the PIN box. But forms can also contain <strong>hidden fields</strong>
+      that are invisible on the page yet still get sent to the server when you click submit.
+    </p>
+    <p>
+      You can see all of this hidden code yourself. <strong>Right-click</strong> anywhere on the
+      transfer form and click <strong>Inspect</strong>. A panel opens showing the code behind the page.
+      Look through the transfer form code and see if you can spot a hidden field.
+      It will look something like this:
+    </p>
+    <div class="code-block">&lt;input type="hidden" name="account_id" value="..."&gt;</div>
+    <p>
+      Found it? The server uses that value to decide <em>which account's PIN to check</em>
+      when you hit submit. You know the PIN of one account. Can you make the server
+      check that one instead of Charlie's?
+    </p>
+    <p>
+    
+    </p>
+    <p class="hint">
+      💡 <strong>Hint:</strong>   Double-click the value in the inspector to edit it, change it to your own account ID (10),
+      then submit the form using your own PIN=   <strong> 1234</strong>. 💸
+  </div>
+</div>
+
+    <!-- STEP 4 -->
+    <div class="step step-4">
+      <div class="step-num">✓</div>
+      <div class="step-body">
+        <h3>COLLECT YOUR MONEY</h3>
+        <p>
+          Transfer amount: set it to <span class="money">500000</span>. Hit confirm.
+          Watch Charlie's millions shrink and your balance explode.
+        </p>
+        <p>Congratulations: you're now a (fictional) cybercriminal. 🎉</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- VULN LEGEND -->
+  <div class="legend">
+    <h2>◈ WHAT YOU JUST EXPLOITED</h2>
+    <div class="legend-grid">
+      <div class="legend-item sql">
+        <h4>SQL INJECTION (OWASP A03)</h4>
+        <p>Unsanitized user input injected directly into a database query. Fix: use parameterized queries / prepared statements.</p>
+      </div>
+      <div class="legend-item idor">
+        <h4>IDOR (OWASP A01)</h4>
+        <p>Server exposes internal object references without verifying ownership. Fix: always check if the logged-in user owns the requested resource.</p>
+      </div>
+      <div class="legend-item bac">
+        <h4>BROKEN ACCESS CONTROL (OWASP A01)</h4>
+        <p>Server trusts client-supplied hidden fields to determine which account to verify. Fix: derive account identity from the server session, never from form data.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- CTA -->
+  <div class="cta-wrap">
+    <a href="/login" class="btn-hack">START THE HACK</a>
+    <p class="cta-sub">→ /login — use credentials above</p>
+  </div>
+
+  <div class="footer">
+    <p>⚠ EDUCATIONAL DEMO ONLY — intentionally vulnerable by design ⚠</p>
+    <p style="margin-top:8px">Built for University Information Day · <a href="https://github.com" target="_blank">GitHub</a></p>
+  </div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SecureBank™ — Find User</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@600;800&family=Exo+2:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+  :root{--green:#00ff9f;--cyan:#00d4ff;--red:#ff3c5f;--yellow:#ffe600;--bg:#060a0f;--panel:#0a1628;--border:#0d2a4a;--text:#c8e6ff;--dim:#4a7a9b;}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--bg);color:var(--text);font-family:'Exo 2',sans-serif;min-height:100vh;}
+  body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(0,212,255,.03)1px,transparent 1px),linear-gradient(90deg,rgba(0,212,255,.03)1px,transparent 1px);background-size:60px 60px;animation:g 20s linear infinite;pointer-events:none;z-index:0;}
+  @keyframes g{to{background-position:0 60px;}}
+  nav{position:relative;z-index:2;background:var(--panel);border-bottom:1px solid var(--border);padding:16px 32px;display:flex;align-items:center;justify-content:space-between;}
+  .nav-brand{font-family:'Orbitron',monospace;font-size:1.1rem;font-weight:800;color:var(--green);letter-spacing:2px;}
+  .nav-links a{font-family:'Share Tech Mono',monospace;font-size:.8rem;color:var(--dim);text-decoration:none;margin-left:20px;}
+  .nav-links a:hover{color:var(--yellow);}
+  main{position:relative;z-index:2;max-width:700px;margin:0 auto;padding:40px 24px;}
+
+  h2{font-family:'Orbitron',monospace;font-size:1rem;color:var(--cyan);letter-spacing:3px;margin-bottom:28px;padding-bottom:12px;border-bottom:1px solid var(--border);}
+
+  .search-card{background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:28px;margin-bottom:24px;}
+  .search-card p{font-size:.9rem;color:var(--dim);margin-bottom:18px;line-height:1.6;}
+  .input-row{display:flex;gap:12px;}
+  .input-row input{flex:1;background:#020810;border:1px solid var(--border);border-radius:3px;padding:12px 16px;color:var(--green);font-family:'Share Tech Mono',monospace;font-size:1rem;outline:none;transition:border-color .2s;}
+  .input-row input:focus{border-color:var(--cyan);}
+  .input-row button{padding:12px 24px;background:transparent;border:2px solid var(--cyan);border-radius:3px;color:var(--cyan);font-family:'Orbitron',monospace;font-size:.8rem;letter-spacing:2px;cursor:pointer;transition:all .2s;white-space:nowrap;}
+  .input-row button:hover{background:var(--cyan);color:var(--bg);}
+
+  .hint-pill{display:inline-block;margin-top:12px;font-family:'Share Tech Mono',monospace;font-size:.75rem;background:rgba(255,60,95,.08);border:1px solid rgba(255,60,95,.25);color:var(--red);padding:4px 12px;border-radius:2px;}
+
+  .results{margin-top:24px;}
+  .results h3{font-family:'Share Tech Mono',monospace;font-size:.8rem;color:var(--dim);letter-spacing:2px;margin-bottom:12px;}
+  .result-row{background:var(--panel);border:1px solid var(--border);border-radius:3px;padding:14px 18px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;font-family:'Share Tech Mono',monospace;font-size:.9rem;}
+  .result-row .username{color:var(--green);}
+  .result-row .ids{color:var(--dim);font-size:.8rem;}
+  .result-row.charlie{border-color:var(--yellow);background:rgba(255,230,0,.05);}
+  .result-row.charlie .username{color:var(--yellow);}
+  .result-row.charlie::after{content:'⭐ LOTTERY WINNER';font-size:.7rem;color:var(--yellow);opacity:.7;}
+
+  .error-box{background:rgba(255,60,95,.08);border:1px solid var(--red);border-radius:3px;padding:14px 18px;font-family:'Share Tech Mono',monospace;font-size:.85rem;color:var(--red);}
+
+  @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+  main>*{animation:fadeUp .5s ease both;}
+</style>
+</head>
+<body>
+<nav>
+  <div class="nav-brand">SecureBank™</div>
+  <div class="nav-links">
+    <a href="/dashboard">← Dashboard</a>
+    <a href="/instructions">Instructions</a>
+  </div>
+</nav>
+<main>
+  <h2>◈ USER LOOKUP</h2>
+  <div class="search-card">
+    <p>Enter a user ID to look up their account. This query runs directly against our secure database.</p>
+    <form method="GET">
+      <div class="input-row">
+        <input type="text" name="id" value="{{ query }}" placeholder="Enter user ID…" autocomplete="off">
+        <button type="submit">SEARCH</button>
+      </div>
+    </form>
+    <div class="hint-pill">💡 Hint: what if you typed something other than a number?</div>
+  </div>
+
+  {% if error %}
+  <div class="error-box">⚠ DB ERROR: {{ error }}</div>
+  {% endif %}
+
+  {% if results %}
+  <div class="results">
+    <h3>QUERY RESULTS ({{ results|length }} row{{ 's' if results|length != 1 }})</h3>
+    {% for r in results %}
+    <div class="result-row {{ 'charlie' if r.username == 'charlie' else '' }}">
+      <span class="username">{{ r.username }}</span>
+      <span class="ids">user_id: {{ r.user_id }} &nbsp;|&nbsp; account_id: {{ r.acc_id }}</span>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {% if query and not results and not error %}
+  <div class="error-box">No user found with that ID.</div>
+  {% endif %}
+</main>
+</body>
+</html>

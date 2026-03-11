@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SecureBank™ — Transfer Result</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@600;800&family=Exo+2:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+  :root{--green:#00ff9f;--cyan:#00d4ff;--red:#ff3c5f;--yellow:#ffe600;--bg:#060a0f;--panel:#0a1628;--border:#0d2a4a;--text:#c8e6ff;--dim:#4a7a9b;}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--bg);color:var(--text);font-family:'Exo 2',sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;}
+  body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(0,212,255,.03)1px,transparent 1px),linear-gradient(90deg,rgba(0,212,255,.03)1px,transparent 1px);background-size:60px 60px;animation:g 20s linear infinite;pointer-events:none;}
+  @keyframes g{to{background-position:0 60px;}}
+
+  .result-wrap{position:relative;z-index:2;max-width:480px;width:100%;padding:24px;}
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:40px 36px;text-align:center;}
+
+  .icon{font-size:4rem;margin-bottom:24px;display:block;}
+  .card h2{font-family:'Orbitron',monospace;font-size:1.1rem;letter-spacing:3px;margin-bottom:24px;}
+  .card.success h2{color:var(--green);}
+  .card.fail h2{color:var(--red);}
+
+  .transaction{background:#020810;border:1px solid var(--border);border-radius:4px;padding:20px;margin:20px 0;text-align:left;}
+  .t-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);font-family:'Share Tech Mono',monospace;font-size:.85rem;}
+  .t-row:last-child{border-bottom:none;}
+  .t-row .t-label{color:var(--dim);}
+  .t-row .t-val{color:var(--green);}
+  .t-row .t-val.red{color:var(--red);}
+  .t-row .t-val.yellow{color:var(--yellow);}
+
+  .amount-big{font-family:'Orbitron',monospace;font-size:1.8rem;font-weight:800;color:var(--yellow);margin:12px 0;}
+
+  .error-msg{font-family:'Share Tech Mono',monospace;font-size:.9rem;color:var(--red);margin-bottom:20px;}
+
+  .btn{display:inline-block;margin-top:8px;padding:12px 28px;font-family:'Orbitron',monospace;font-size:.8rem;letter-spacing:2px;border:2px solid;border-radius:3px;text-decoration:none;transition:all .2s;}
+  .btn-green{color:var(--green);border-color:var(--green);}
+  .btn-green:hover{background:var(--green);color:var(--bg);}
+  .btn-dim{color:var(--dim);border-color:var(--border);margin-left:12px;}
+  .btn-dim:hover{border-color:var(--dim);}
+
+  .confetti{position:fixed;inset:0;pointer-events:none;z-index:10;}
+  .c{position:absolute;width:8px;height:8px;opacity:0;animation:fall 3s ease-in forwards;}
+  @keyframes fall{0%{opacity:1;transform:translateY(-20px) rotate(0deg);}100%{opacity:0;transform:translateY(100vh) rotate(720deg);}}
+
+  @keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:none}}
+  .result-wrap{animation:fadeUp .5s ease both;}
+</style>
+</head>
+<body>
+
+{% if success %}
+<!-- Confetti -->
+<div class="confetti" id="confetti"></div>
+<script>
+  const colors=['#00ff9f','#ffe600','#00d4ff','#ff3c5f'];
+  const cf=document.getElementById('confetti');
+  for(let i=0;i<80;i++){
+    const d=document.createElement('div');
+    d.className='c';
+    d.style.cssText=`left:${Math.random()*100}%;top:${Math.random()*20}%;background:${colors[i%4]};animation-delay:${Math.random()*2}s;animation-duration:${2+Math.random()*2}s;`;
+    cf.appendChild(d);
+  }
+</script>
+{% endif %}
+
+<div class="result-wrap">
+  <div class="card {{ 'success' if success else 'fail' }}">
+    <span class="icon">{{ '💸' if success else '🚫' }}</span>
+    <h2>{{ 'TRANSFER COMPLETE' if success else 'TRANSFER FAILED' }}</h2>
+
+    {% if success %}
+    <div class="amount-big">+€{{ "{:,.2f}".format(amount) }}</div>
+    <div class="transaction">
+      <div class="t-row">
+        <span class="t-label">AMOUNT</span>
+        <span class="t-val yellow">€{{ "{:,.2f}".format(amount) }}</span>
+      </div>
+      <div class="t-row">
+        <span class="t-label">FROM ACC #{{ from_user }}</span>
+        <span class="t-val red">€{{ "{:,.2f}".format(old_src) }} → €{{ "{:,.2f}".format(new_src) }}</span>
+      </div>
+      <div class="t-row">
+        <span class="t-label">TO {{ to_user | upper }}</span>
+        <span class="t-val">€{{ "{:,.2f}".format(old_dst) }} → €{{ "{:,.2f}".format(new_dst) }}</span>
+      </div>
+    </div>
+    <p style="font-family:'Share Tech Mono',monospace;font-size:.8rem;color:var(--dim);margin-bottom:20px;">
+      You exploited SQL Injection + IDOR + Broken Access Control. 🎉
+    </p>
+    {% else %}
+    <div class="error-msg">{{ error }}</div>
+    {% endif %}
+
+    <div>
+      <a href="/dashboard" class="btn btn-green">DASHBOARD</a>
+      <a href="/reset" class="btn btn-dim">RESET DEMO</a>
+    </div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,17 @@
+{
+  "name": "security-demonstration",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Local server and database for the crypto challenge leaderboard",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "db:check": "node scripts/check_db.js",
+    "db:export": "node scripts/export_csv.js",
+    "db:clear": "node scripts/clear_db.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "sqlite3": "^5.1.7"
+  }
+}

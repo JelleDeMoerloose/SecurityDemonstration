@@ -185,6 +185,39 @@ app.post('/api/submissions', async (req, res) => {
       return;
     }
 
+    const existingAttempt = await get(
+      `
+      SELECT id
+      FROM attempts
+      WHERE email = ?
+      LIMIT 1
+      `,
+      [email]
+    );
+
+    if (existingAttempt) {
+      res.status(409).json({
+        error: 'This user already submitted an attempt. Multiple submissions are not allowed.'
+      });
+      return;
+    }
+
+    const existing = await get(
+      `
+      SELECT email
+      FROM leaderboard_best
+      WHERE email = ?
+      `,
+      [email]
+    );
+
+    if (existing) {
+      res.status(409).json({
+        error: 'This user already has a leaderboard record. Updating an existing record is not allowed.'
+      });
+      return;
+    }
+
     const { matches, accuracy } = compareAnswers(answer, CORRECT_FINAL);
     const correct = answer === CORRECT_FINAL;
     const speedBonus = matches > 0 ? Math.max(0, 200 - elapsed) : 0;
@@ -224,74 +257,27 @@ app.post('/api/submissions', async (req, res) => {
       ]
     );
 
-    const existing = await get(
+    const improved = true;
+    await run(
       `
-      SELECT email, score, time_seconds
-      FROM leaderboard_best
-      WHERE email = ?
+      INSERT INTO leaderboard_best (
+        email, name, time_seconds, time_string, submitted_at,
+        score, accuracy, correct, matches, updated_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `,
-      [email]
+      [
+        email,
+        name,
+        elapsed,
+        timeString,
+        submittedAt,
+        totalScore,
+        accuracy,
+        correct ? 1 : 0,
+        matches,
+        nowIso
+      ]
     );
-
-    let improved = false;
-    if (!existing) {
-      improved = true;
-      await run(
-        `
-        INSERT INTO leaderboard_best (
-          email, name, time_seconds, time_string, submitted_at,
-          score, accuracy, correct, matches, updated_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        `,
-        [
-          email,
-          name,
-          elapsed,
-          timeString,
-          submittedAt,
-          totalScore,
-          accuracy,
-          correct ? 1 : 0,
-          matches,
-          nowIso
-        ]
-      );
-    } else {
-      const isBetter =
-        totalScore > existing.score ||
-        (totalScore === existing.score && elapsed < existing.time_seconds);
-
-      if (isBetter) {
-        improved = true;
-        await run(
-          `
-          UPDATE leaderboard_best
-          SET name = ?,
-              time_seconds = ?,
-              time_string = ?,
-              submitted_at = ?,
-              score = ?,
-              accuracy = ?,
-              correct = ?,
-              matches = ?,
-              updated_at = ?
-          WHERE email = ?
-          `,
-          [
-            name,
-            elapsed,
-            timeString,
-            submittedAt,
-            totalScore,
-            accuracy,
-            correct ? 1 : 0,
-            matches,
-            nowIso,
-            email
-          ]
-        );
-      }
-    }
 
     const leaderboard = await getLeaderboard();
     const position = leaderboard.findIndex((entry) => entry.email === email) + 1;

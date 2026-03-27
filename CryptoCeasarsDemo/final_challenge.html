@@ -358,7 +358,6 @@
         <div class="timer-display" id="finalTimer">00:00</div>
         <div class="timer-controls">
             <button class="btn-timer" id="timerToggleBtn" onclick="startStopTimer()">[ ▶ START TIMER ]</button>
-            <button class="btn-timer" onclick="resetTimerBtn()">[ ⟲ RESET ]</button>
         </div>
 
         <p style="font-size:0.75rem;color:#ef4444;letter-spacing:2px;margin-bottom:10px;" id="lockedMsg">// ANSWER LOCKED — start the timer first</p>
@@ -467,20 +466,18 @@
         if (!timerRunning) {
             timerRunning=true; timerStartEpoch=Date.now();
             timerInterval=setInterval(renderTimer,500);
-            document.getElementById('timerToggleBtn').textContent='[ ⏸ PAUSE TIMER ]';
+            document.getElementById('timerToggleBtn').textContent='[ TIMER RUNNING ]';
+            document.getElementById('timerToggleBtn').disabled=true;
             document.getElementById('finalAnswer').disabled=false;
             document.getElementById('finalAnswer').placeholder='Your decrypted message...';
             document.getElementById('lockedMsg').style.display='none';
             syncEncryptedMessageVisibility();
-        } else {
-            timerElapsed+=Math.floor((Date.now()-timerStartEpoch)/1000);
-            timerRunning=false; clearInterval(timerInterval);
-            document.getElementById('timerToggleBtn').textContent='[ ▶ RESUME TIMER ]';
         }
     }
     function resetTimerBtn() {
         timerRunning=false; timerElapsed=0; clearInterval(timerInterval); renderTimer();
         document.getElementById('timerToggleBtn').textContent='[ ▶ START TIMER ]';
+        document.getElementById('timerToggleBtn').disabled=false;
         document.getElementById('finalAnswer').disabled=true;
         document.getElementById('finalAnswer').placeholder='Start the timer to unlock...';
         document.getElementById('lockedMsg').style.display='block';
@@ -656,6 +653,7 @@
             timerElapsed+=Math.floor((Date.now()-timerStartEpoch)/1000);
             timerRunning=false; clearInterval(timerInterval);
             document.getElementById('timerToggleBtn').textContent='[ ▶ START TIMER ]';
+            document.getElementById('timerToggleBtn').disabled=false;
         }
 
         const elapsed = timerElapsed;
@@ -667,7 +665,15 @@
                 body: JSON.stringify({ name, email, answer, elapsed })
             });
             payload = await response.json();
-            if (!response.ok) throw new Error(payload.error || 'Submission failed.');
+            if (!response.ok) {
+                if (response.status === 409) {
+                    document.getElementById('finalAnswer').value='';
+                    document.getElementById('studentName').value='';
+                    document.getElementById('studentEmail').value='';
+                    resetTimerBtn();
+                }
+                throw new Error(payload.error || 'Submission failed.');
+            }
         } catch (err) {
             el.innerHTML = msg('err', `// ERROR: ${err.message}`);
             return;
@@ -687,9 +693,7 @@
         updateLeaderboard();
 
         let resultHTML;
-        const updateNote = payload.improved
-            ? '// RECORD UPDATED — new best score!'
-            : '// NO IMPROVEMENT — your previous record was better.';
+        const updateNote = '// RECORD IS WRITTEN';
 
         if (matches === 0) {
             resultHTML=msg('err',
@@ -699,11 +703,11 @@
                 `Score        : 0 pts<br>` +
                 `Rank         : #${pos}<br><br>` +
                 `${updateNote}<br>` +
-                `Use the Alphabet Shift Explorer — try shift 3!`
+                `Use the Alphabet Shift Explorer!`
             );
         } else if (fullyCorrect) {
             resultHTML=msg('ok',
-                `// ACCESS GRANTED ✓ Perfect!<br><br>` +
+                `// ✓ Perfect!<br><br>` +
                 `Solve time   : ${timeString}<br>` +
                 `Submitted at : ${submittedAt}<br>` +
                 `Speed bonus  : +${speedBonus}<br>` +
